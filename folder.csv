@@ -1,0 +1,74 @@
+NetworkSimulator/
+│
+├── main.cpp
+├── README.md
+│
+├── include/
+│   ├── common/
+│   │   └── Types.h
+│   │
+│   ├── core/
+│   │   ├── Address.h
+│   │   ├── Frame.h
+│   │   └── SimulationLogger.h
+│   │
+│   ├── devices/
+│   │   ├── Device.h
+│   │   ├── EndDevice.h
+│   │   ├── Hub.h
+│   │   ├── Bridge.h
+│   │   └── Switch.h
+│   │
+│   ├── protocols/
+│   │   ├── access/
+│   │   │   ├── IAccessControl.h
+│   │   │   └── CSMACD.h
+│   │   │
+│   │   ├── error/
+│   │   │   ├── IErrorControl.h
+│   │   │   └── ParityErrorControl.h
+│   │   │
+│   │   └── flow/
+│   │       ├── IFlowControl.h
+│   │       └── StopAndWaitFlowControl.h
+│   │
+│   ├── services/
+│   │   └── DomainAnalyzer.h
+│   │
+│   └── scenarios/
+│       ├── DedicatedLinkScenario.h
+│       ├── HubStarScenario.h
+│       ├── SwitchScenario.h
+│       └── HybridScenario.h
+│
+├── src/
+│   ├── core/
+│   │   ├── Address.cpp
+│   │   ├── Frame.cpp
+│   │   └── SimulationLogger.cpp
+│   │
+│   ├── devices/
+│   │   ├── Device.cpp
+│   │   ├── EndDevice.cpp
+│   │   ├── Hub.cpp
+│   │   ├── Bridge.cpp
+│   │   └── Switch.cpp
+│   │
+│   ├── protocols/
+│   │   ├── access/
+│   │   │   └── CSMACD.cpp
+│   │   ├── error/
+│   │   │   └── ParityErrorControl.cpp
+│   │   └── flow/
+│   │       └── StopAndWaitFlowControl.cpp
+│   │
+│   ├── services/
+│   │   └── DomainAnalyzer.cpp
+│   │
+│   └── scenarios/
+│       ├── DedicatedLinkScenario.cpp
+│       ├── HubStarScenario.cpp
+│       ├── SwitchScenario.cpp
+│       └── HybridScenario.cpp
+│
+└── tests/
