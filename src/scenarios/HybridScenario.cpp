@@ -56,8 +56,12 @@ void HybridScenario::run() {
     sw1.addConnection(&hub1);
     sw1.addConnection(&hub2);
 
-    a1.sendData("Message from A1 to B4", Address("BB:BB:BB:BB:BB:04"));
-    b3.sendData("Reply from B3 to A2", Address("AA:AA:AA:AA:AA:02"));
+    a1.sendData("Message from A1 to B4", Address("BB:BB:BB:BB:BB:04"), true);
+    b4.sendData("ACK from B4 to A1", Address("AA:AA:AA:AA:AA:01"), false);
+
+    b3.sendData("Message from B3 to A2", Address("AA:AA:AA:AA:AA:02"), true);
+    a2.sendData("ACK from A2 to B3", Address("BB:BB:BB:BB:BB:03"), false);
+
 
     DomainAnalyzer::printDomainReport(
         "Two Hub Stars Connected Through Switch",

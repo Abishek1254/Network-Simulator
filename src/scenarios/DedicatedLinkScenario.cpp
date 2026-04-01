@@ -13,7 +13,7 @@ void DedicatedLinkScenario::run() {
     pc1.addConnection(&pc2);
     pc2.addConnection(&pc1);
 
-    pc1.sendData("Hello over dedicated link", Address("AA:AA:AA:AA:AA:02"));
+    pc1.sendData("Hello over dedicated link", Address("AA:AA:AA:AA:AA:02"), true);
 
     cout << "=============================================\n";
 }

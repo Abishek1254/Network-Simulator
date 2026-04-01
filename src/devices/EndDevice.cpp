@@ -28,10 +28,12 @@ void EndDevice::setFlowControl(IFlowControl* flowControl) {
     this->flowControl = flowControl;
 }
 
-void EndDevice::sendData(string data, Address destinationMac) {
+void EndDevice::sendData(string data, Address destinationMac, bool isFrame) {
     Frame frame(macAddress, destinationMac, data, nextSequenceNumber);
-
-    SimulationLogger::info(name + " is preparing to send frame: " + frame.toString());
+    if(isFrame)
+        SimulationLogger::info(name + " is preparing to send frame: " + frame.toString());
+    else
+        SimulationLogger::info(name + " is preparing to send ACK:" + frame.toString());
 
     if (errorControl != NULL) {
         errorControl->applyErrorControl(frame);

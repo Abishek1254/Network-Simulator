@@ -16,8 +16,12 @@ void Switch::receiveFrame(Frame frame, Device* sender) {
     string srcMac = frame.getSourceMac().getMacAddress();
     string destMac = frame.getDestinationMac().getMacAddress();
 
-    macTable[srcMac] = sender;
-    SimulationLogger::info(name + " learned MAC " + srcMac);
+    if (macTable.find(srcMac) == macTable.end()) {
+        macTable[srcMac] = sender;
+        SimulationLogger::info(name + " learned MAC " + srcMac);
+    }
+
+
 
     if (frame.isBroadcast()) {
         SimulationLogger::info(name + " received broadcast frame, flooding.");

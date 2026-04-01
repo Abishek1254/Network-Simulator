@@ -28,7 +28,8 @@ void HubStarScenario::run() {
     hub1.addConnection(&pc4);
     hub1.addConnection(&pc5);
 
-    pc1.sendData("Message from PC1 to PC3 through hub", Address("AA:AA:AA:AA:AA:03"));
+    pc1.sendData("Message from PC1 to PC3 through hub", Address("AA:AA:AA:AA:AA:03"), true);
+    pc3.sendData("ACK from PC3 to PC1 through hub", Address("AA:AA:AA:AA:AA:01"), false);
 
     DomainAnalyzer::printDomainReport(
         "Hub Star Topology",

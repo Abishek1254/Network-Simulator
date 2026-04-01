@@ -25,7 +25,7 @@ public:
     void setErrorControl(IErrorControl* errorControl);
     void setFlowControl(IFlowControl* flowControl);
 
-    void sendData(string data, Address destinationMac);
+    void sendData(string data, Address destinationMac, bool isFrame);
     void sendFrame(Frame frame, Device* sender = NULL);
     void receiveFrame(Frame frame, Device* sender = NULL);
 };

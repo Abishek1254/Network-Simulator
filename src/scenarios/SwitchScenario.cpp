@@ -58,16 +58,20 @@ void SwitchScenario::run() {
     sw1.addConnection(&pc5);
 
     cout << "\n--- Transmission 1: PC1 -> PC3 ---\n";
-    pc1.sendData("1010101", Address("AA:AA:AA:AA:AA:03"));
+    pc1.sendData("1010101", Address("AA:AA:AA:AA:AA:03"), true);
+    pc3.sendData("ACK from PC3 to PC1", Address("AA:AA:AA:AA:AA:01"), false);
 
     cout << "\n--- Transmission 2: PC3 -> PC1 ---\n";
-    pc3.sendData("1110001", Address("AA:AA:AA:AA:AA:01"));
+    pc3.sendData("1110001", Address("AA:AA:AA:AA:AA:01"), true);
+    pc1.sendData("ACK from PC1 to PC3", Address("AA:AA:AA:AA:AA:03"), false);
 
     cout << "\n--- Transmission 3: PC1 -> PC5 ---\n";
-    pc1.sendData("1100110", Address("AA:AA:AA:AA:AA:05"));
+    pc1.sendData("1100110", Address("AA:AA:AA:AA:AA:05"), true);
+    pc5.sendData("ACK from PC5 to PC1", Address("AA:AA:AA:AA:AA:01"), false);
 
     cout << "\n--- Transmission 4: PC5 -> PC2 ---\n";
-    pc5.sendData("0011001", Address("AA:AA:AA:AA:AA:02"));
+    pc5.sendData("0011001", Address("AA:AA:AA:AA:AA:02"), true);
+    pc2.sendData("ACK from PC2 to PC5", Address("AA:AA:AA:AA:AA:05"), false);
 
     cout << "\n";
     sw1.printMACTable();
