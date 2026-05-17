@@ -8,19 +8,21 @@ GoBackNFlowControl::GoBackNFlowControl(int windowSize) {
 }
 
 bool GoBackNFlowControl::sendWithFlowControl(Frame frame) {
-    if (nextSequenceNumber < base + windowSize) {
+    // condition of full window: Sf + Ssize == Sn
+    if (nextSequenceNumber == base + windowSize) {
+        SimulationLogger::warn("Go-Back-N: Window full. Cannot send frame now.");
+        return false;
+    } 
+    else {
         SimulationLogger::info("Go-Back-N: Frame sent. Seq = " + to_string(frame.getSequenceNumber()));
         nextSequenceNumber++;
         return true;
-    } else {
-        SimulationLogger::warn("Go-Back-N: Window full. Cannot send frame now.");
-        return false;
     }
 }
 
 void GoBackNFlowControl::receiveAck(int ackNumber) {
-    if (ackNumber >= base) {
-        base = ackNumber + 1;
+    if (ackNumber > base) {
+        base = ackNumber ;
         SimulationLogger::info("Go-Back-N: ACK received for seq " + to_string(ackNumber));
     }
 }

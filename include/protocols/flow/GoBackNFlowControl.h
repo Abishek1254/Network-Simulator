@@ -10,11 +10,11 @@ using namespace std;
 class GoBackNFlowControl : public IFlowControl {
 private:
     int windowSize;
-    int base;
-    int nextSequenceNumber;
+    int base; // Sf -> base sequence number
+    int nextSequenceNumber; // Snext -> next sequence number to be sent
 
 public:
-    GoBackNFlowControl(int windowSize = 4);
+    GoBackNFlowControl(int windowSize = 3);
 
     bool sendWithFlowControl(Frame frame);
     void receiveAck(int ackNumber);

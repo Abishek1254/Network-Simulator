@@ -21,8 +21,6 @@ void Switch::receiveFrame(Frame frame, Device* sender) {
         SimulationLogger::info(name + " learned MAC " + srcMac);
     }
 
-
-
     if (frame.isBroadcast()) {
         SimulationLogger::info(name + " received broadcast frame, flooding.");
 
@@ -44,7 +42,8 @@ void Switch::receiveFrame(Frame frame, Device* sender) {
 
         SimulationLogger::info(name + " forwarding frame to known destination " + destMac);
         target->receiveFrame(frame, this);
-    } else {
+    } 
+    else {
         SimulationLogger::info(name + " destination MAC unknown, flooding frame.");
 
         for (int i = 0; i < connections.size(); i++) {

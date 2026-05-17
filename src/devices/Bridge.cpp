@@ -16,9 +16,10 @@ void Bridge::receiveFrame(Frame frame, Device* sender) {
     string srcMac = frame.getSourceMac().getMacAddress();
     string destMac = frame.getDestinationMac().getMacAddress();
 
-    macTable[srcMac] = sender;
-
-    SimulationLogger::info(name + " learned source MAC " + srcMac);
+    if (macTable.find(srcMac) == macTable.end()) {
+        macTable[srcMac] = sender;
+        SimulationLogger::info(name + " learned MAC " + srcMac);
+    }
 
     if (frame.isBroadcast()) {
         SimulationLogger::info(name + " received broadcast frame, forwarding to all other connections.");
@@ -36,11 +37,13 @@ void Bridge::receiveFrame(Frame frame, Device* sender) {
 
         if (target == sender) {
             SimulationLogger::info(name + " filtered frame. Source and destination are on same side.");
-        } else {
+        } 
+        else {
             SimulationLogger::info(name + " forwarding frame only to destination side.");
             target->receiveFrame(frame, this);
         }
-    } else {
+    }
+     else {
         SimulationLogger::info(name + " destination unknown, flooding frame.");
 
         for (int i = 0; i < connections.size(); i++) {

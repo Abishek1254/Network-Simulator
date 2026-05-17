@@ -62,6 +62,8 @@ void HybridScenario::run() {
     b3.sendData("Message from B3 to A2", Address("AA:AA:AA:AA:AA:02"), true);
     a2.sendData("ACK from A2 to B3", Address("BB:BB:BB:BB:BB:03"), false);
 
+    cout<<endl;
+    sw1.printMACTable();
 
     DomainAnalyzer::printDomainReport(
         "Two Hub Stars Connected Through Switch",

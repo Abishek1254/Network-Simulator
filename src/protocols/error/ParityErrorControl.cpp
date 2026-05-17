@@ -22,9 +22,8 @@ bool ParityErrorControl::checkError(Frame frame) {
     int count = 0;
 
     for (int i = 0; i < data.size(); i++) {
-        if (data[i] == '1') {
-            count++;
-        }
+        if (data[i] == '1')
+        count++;
     }
 
     int expectedParity = count % 2;
@@ -32,7 +31,8 @@ bool ParityErrorControl::checkError(Frame frame) {
     if (expectedParity == frame.getParityBit()) {
         SimulationLogger::info("Parity check passed.");
         return true;
-    } else {
+    } 
+    else {
         SimulationLogger::warn("Parity check failed.");
         return false;
     }

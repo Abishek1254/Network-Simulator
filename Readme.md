@@ -1,17 +1,17 @@
-# Network Simulator - Semester Project Submission 1
+# Network Simulator - Protocol Stack Simulator
 
 ## Project Title
-Network Simulator Implementing Protocol Stack (Submission 1)
+Network Simulator Implementing Protocol Stack
 
 ## Course
 Computer Networks Lab
 
 ## Submission
-Semester Project Submission 1
+Semester Project Submission 1 + Submission 2
 
 ## Overview
 This project is a console-based network simulator developed in **C++**.  
-The goal of this submission is to implement the required parts of the **Physical Layer** and **Data Link Layer** as mentioned in the assignment document.
+The goal of this project is to implement the required parts of the **Physical Layer**, **Data Link Layer**, and **Network Layer** as mentioned in the assignment document.
 
 This simulator is designed in a **modular and extensible object-oriented way** so that future submissions can build on top of the current implementation and add the remaining layers of the protocol stack.
 
@@ -28,8 +28,8 @@ This simulator is designed in a **modular and extensible object-oriented way** s
 ## Input / Output Representation
 
 ### Input
-The simulator currently takes input through a **menu-driven console interface**.  
-The user can select a scenario to run from the available test cases.
+The simulator runs all built-in scenarios automatically from `main.cpp`.  
+It does **not** use a "press 1 for physical layer, 2 for data link layer" style menu.
 
 ### Output
 The simulator prints:
@@ -37,15 +37,17 @@ The simulator prints:
 - frame forwarding and broadcasting logs
 - MAC learning logs for switch
 - protocol behavior logs
+- ARP request/reply logs
+- router interface and routing-table logs
 - collision domain and broadcast domain reports
 
 The output is textual and intended for simulation and demonstration purposes only.
 
 ---
 
-## Scope of Submission 1
+## Scope of Submission 1+ Submission 2
 
-This submission covers:
+This project currently covers:
 
 ### 1. Physical Layer Functionalities
 - Creating **end devices**
@@ -60,6 +62,16 @@ This submission covers:
 - One **error control protocol**
 - One **access control protocol**
 - One **sliding window-based flow control protocol**
+
+### 3. Network Layer Functionalities
+- Creating and configuring **routers**
+- Assigning **well-formatted classless IPv4 addresses**
+- Resolving next-hop MAC addresses using **ARP**
+- Performing **static routing**
+- Performing **longest prefix match** during route lookup
+- Performing **dynamic routing using RIP**
+
+The integrated network-layer scenario sends IP traffic over the already implemented lower layers, so ARP, IPv4 forwarding, switching, MAC learning, access control, error control, and flow control are logged together as part of the same simulation flow.
 
 ---
 
@@ -94,9 +106,16 @@ The simulator is implemented using a modular class-based design.
   - payload
   - sequence number
   - parity bit
+  - optional IPv4 / ARP / routing update content
 
 - `SimulationLogger`  
   Prints logs for simulation events
+
+- `IPv4Address`  
+  Represents IPv4 addresses and subnet calculations
+
+- `IPPacket` / routing data structures  
+  Represent Layer 3 packets, ARP messages, and routing table entries
 
 ### Device Classes
 - `Device`  
@@ -114,6 +133,12 @@ The simulator is implemented using a modular class-based design.
 - `Switch`  
   Performs MAC learning and selective forwarding
 
+- `Router`  
+  Performs IP forwarding across multiple interfaces
+  - maintains connected, static, and RIP-learned routes
+  - resolves next-hop MAC addresses through ARP
+  - applies longest prefix matching for route selection
+
 ### Protocol Interfaces
 To keep the code extensible, protocol functionality is separated through interfaces:
 
@@ -130,7 +155,7 @@ This allows future addition of more protocols without changing the main device a
   - broadcast domains
 
 ### Scenarios
-The required assignment test cases are implemented as separate scenario files.
+The required assignment test cases are implemented as separate scenario files and are executed automatically in one simulator run.
 
 ---
 
@@ -168,6 +193,13 @@ The required assignment test cases are implemented as separate scenario files.
 - Reports:
   - collision domains
   - broadcast domains
+
+### 5. Network Layer Scenario
+- LAN communication using **ARP**
+- Remote delivery using **static routing**
+- **Longest prefix match** route selection
+- **RIP** exchange between routers
+- End-to-end IP delivery across multiple routed networks
 
 ---
 
