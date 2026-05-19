@@ -5,6 +5,7 @@
 #include <map>
 #include <string>
 #include "Device.h"
+#include "../applications/ApplicationService.h"
 #include "../core/IPv4Address.h"
 #include "../core/SimulationLogger.h"
 #include "../protocols/access/IAccessControl.h"
@@ -17,16 +18,23 @@ private:
     IAccessControl* accessControl;
     IErrorControl* errorControl;
     IFlowControl* flowControl;
+    IFlowControl* transportFlowControl;
     int nextSequenceNumber;
+    int nextTransportSequenceNumber;
     IPv4Address ipAddress;
     IPv4Address subnetMask;
     IPv4Address defaultGateway;
     map<string, Address> arpTable;
+    map<int, ApplicationService*> applicationServices;
+    map<int, string> clientProcesses;
     bool networkConfigured;
+    int nextEphemeralPort;
 
     bool resolveArp(const IPv4Address& targetIP);
     bool isForThisHost(const IPv4Address& destinationIP) const;
     bool transmitFrameInternal(Frame& frame, bool applyFlowControl, const string& preparationMessage);
+    bool sendIPPacket(const IPPacket& packet);
+    void processTransportSegment(const IPPacket& packet);
 
 public:
     EndDevice();
@@ -35,10 +43,20 @@ public:
     void setAccessControl(IAccessControl* accessControl);
     void setErrorControl(IErrorControl* errorControl);
     void setFlowControl(IFlowControl* flowControl);
+    void setTransportFlowControl(IFlowControl* transportFlowControl);
     void configureNetwork(IPv4Address ipAddress, IPv4Address subnetMask, IPv4Address defaultGateway = IPv4Address::any());
     IPv4Address getIpAddress() const;
     IPv4Address getSubnetMask() const;
     void printArpTable() const;
+    void registerApplication(ApplicationService* applicationService);
+    int openEphemeralPort(const string& processName);
+    void sendApplicationData(
+        IPv4Address destinationIP,
+        int sourcePort,
+        int destinationPort,
+        const ApplicationMessage& applicationMessage,
+        TransportProtocol protocol = TCP_GBN_PROTOCOL
+    );
 
     void sendData(string data, Address destinationMac, bool isFrame);
     void sendIPData(string data, IPv4Address destinationIP);

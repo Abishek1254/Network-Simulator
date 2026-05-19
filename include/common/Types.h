@@ -24,4 +24,9 @@ enum RouteSource {
     RIP_ROUTE
 };
 
+enum TransportProtocol {
+    UDP_PROTOCOL,
+    TCP_GBN_PROTOCOL
+};
+
 #endif

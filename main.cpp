@@ -4,6 +4,7 @@
 #include "include/scenarios/SwitchScenario.h"
 #include "include/scenarios/HybridScenario.h"
 #include "include/scenarios/NetworkLayerScenario.h"
+#include "include/scenarios/FullStackScenario.h"
 
 using namespace std;
 
@@ -38,14 +39,13 @@ int main() {
 
     // HybridScenario::run();
 
-    cout << "\n================ NETWORK LAYER ======================\n";
-    cout << "- Router creation and IPv4 configuration\n";
-    cout << "- ARP-based next-hop MAC resolution\n";
-    cout << "- Static routing and longest prefix match\n";
-    cout << "- RIP-based dynamic routing\n";
+    cout << "\n================ FULL STACK ======================\n";
+    cout << "- Existing physical, data link, and network layer behavior preserved\n";
+    cout << "- Transport layer port assignment and sliding window flow control added\n";
+    cout << "- Application layer process-to-process communication added\n";
 
-    cout << "\n--- Test Case 5: Network Layer Integration ---\n";
-    NetworkLayerScenario::run();
+    cout << "\n--- Test Case 5: Integrated End-to-End Stack ---\n";
+    FullStackScenario::run();
 
     return 0;
 }

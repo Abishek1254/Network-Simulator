@@ -5,11 +5,14 @@ EndDevice::EndDevice() : Device() {
     accessControl = NULL;
     errorControl = NULL;
     flowControl = NULL;
+    transportFlowControl = NULL;
     nextSequenceNumber = 0;
+    nextTransportSequenceNumber = 0;
     ipAddress = IPv4Address();
     subnetMask = IPv4Address();
     defaultGateway = IPv4Address();
     networkConfigured = false;
+    nextEphemeralPort = 49152;
 }
 
 EndDevice::EndDevice(int id, string name, Address macAddress)
@@ -17,11 +20,14 @@ EndDevice::EndDevice(int id, string name, Address macAddress)
     accessControl = NULL;
     errorControl = NULL;
     flowControl = NULL;
+    transportFlowControl = NULL;
     nextSequenceNumber = 0;
+    nextTransportSequenceNumber = 0;
     ipAddress = IPv4Address();
     subnetMask = IPv4Address();
     defaultGateway = IPv4Address();
     networkConfigured = false;
+    nextEphemeralPort = 49152;
 }
 
 void EndDevice::setAccessControl(IAccessControl* accessControl) {
@@ -34,6 +40,10 @@ void EndDevice::setErrorControl(IErrorControl* errorControl) {
 
 void EndDevice::setFlowControl(IFlowControl* flowControl) {
     this->flowControl = flowControl;
+}
+
+void EndDevice::setTransportFlowControl(IFlowControl* transportFlowControl) {
+    this->transportFlowControl = transportFlowControl;
 }
 
 void EndDevice::configureNetwork(IPv4Address ipAddress, IPv4Address subnetMask, IPv4Address defaultGateway) {
@@ -55,6 +65,31 @@ IPv4Address EndDevice::getIpAddress() const {
 
 IPv4Address EndDevice::getSubnetMask() const {
     return subnetMask;
+}
+
+void EndDevice::registerApplication(ApplicationService* applicationService) {
+    if (applicationService == NULL) {
+        return;
+    }
+
+    applicationServices[applicationService->getWellKnownPort()] = applicationService;
+    SimulationLogger::info(
+        name + " bound application " + applicationService->getServiceName()
+        + " to well-known port " + to_string(applicationService->getWellKnownPort())
+    );
+}
+
+int EndDevice::openEphemeralPort(const string& processName) {
+    int allocatedPort = nextEphemeralPort;
+    nextEphemeralPort++;
+    clientProcesses[allocatedPort] = processName;
+
+    SimulationLogger::info(
+        name + " assigned ephemeral port " + to_string(allocatedPort)
+        + " to process " + processName
+    );
+
+    return allocatedPort;
 }
 
 bool EndDevice::transmitFrameInternal(Frame& frame, bool applyFlowControl, const string& preparationMessage) {
@@ -86,6 +121,46 @@ bool EndDevice::transmitFrameInternal(Frame& frame, bool applyFlowControl, const
     SimulationLogger::info(name + " is sending frame: " + frame.toString());
     connections[0]->receiveFrame(frame, this);
     return true;
+}
+
+bool EndDevice::sendIPPacket(const IPPacket& packet) {
+    if (!networkConfigured) {
+        SimulationLogger::error(name + " does not have IPv4 configuration.");
+        return false;
+    }
+
+    IPv4Address destinationIP = packet.getDestinationIP();
+    IPv4Address nextHopIP = destinationIP;
+
+    if (!ipAddress.isInSameSubnet(destinationIP, subnetMask)) {
+        if (defaultGateway.isZero()) {
+            SimulationLogger::error(name + " has no default gateway to reach " + destinationIP.toString());
+            return false;
+        }
+
+        nextHopIP = defaultGateway;
+        SimulationLogger::info(
+            name + " determined destination " + destinationIP.toString()
+            + " is remote, using default gateway " + nextHopIP.toString()
+        );
+    } else {
+        SimulationLogger::info(name + " determined destination " + destinationIP.toString() + " is on the local subnet.");
+    }
+
+    if (!resolveArp(nextHopIP)) {
+        SimulationLogger::error(name + " could not resolve ARP for " + nextHopIP.toString());
+        return false;
+    }
+
+    Address nextHopMac = arpTable[nextHopIP.toString()];
+    Frame frame = Frame::createIPFrame(macAddress, nextHopMac, packet, nextSequenceNumber);
+
+    if (transmitFrameInternal(frame, true, "IP packet")) {
+        nextSequenceNumber++;
+        return true;
+    }
+
+    return false;
 }
 
 bool EndDevice::resolveArp(const IPv4Address& targetIP) {
@@ -129,40 +204,101 @@ void EndDevice::sendData(string data, Address destinationMac, bool isFrame) {
 }
 
 void EndDevice::sendIPData(string data, IPv4Address destinationIP) {
-    if (!networkConfigured) {
-        SimulationLogger::error(name + " does not have IPv4 configuration.");
-        return;
-    }
+    IPPacket packet(ipAddress, destinationIP, data, 16);
+    sendIPPacket(packet);
+}
 
-    IPv4Address nextHopIP = destinationIP;
+void EndDevice::sendApplicationData(
+    IPv4Address destinationIP,
+    int sourcePort,
+    int destinationPort,
+    const ApplicationMessage& applicationMessage,
+    TransportProtocol protocol
+) {
+    TransportSegment segment(
+        sourcePort,
+        destinationPort,
+        nextTransportSequenceNumber,
+        protocol,
+        applicationMessage
+    );
 
-    if (!ipAddress.isInSameSubnet(destinationIP, subnetMask)) {
-        if (defaultGateway.isZero()) {
-            SimulationLogger::error(name + " has no default gateway to reach " + destinationIP.toString());
+    SimulationLogger::info(
+        name + " application layer generated message: " + applicationMessage.toString()
+    );
+    SimulationLogger::info(
+        name + " transport layer encapsulated message into segment: " + segment.toString()
+    );
+
+    IPPacket packet(ipAddress, destinationIP, segment, 16);
+    Frame transportFrame = Frame::createIPFrame(macAddress, Address::getBroadcastAddress(), packet, nextSequenceNumber);
+
+    if (transportFlowControl != NULL) {
+        SimulationLogger::info(
+            name + " transport layer applying sliding window protocol "
+            + transportFlowControl->getProtocolName()
+        );
+
+        if (!transportFlowControl->sendWithFlowControl(transportFrame)) {
+            SimulationLogger::warn(name + " transport layer blocked the segment transmission.");
             return;
         }
-
-        nextHopIP = defaultGateway;
-        SimulationLogger::info(
-            name + " determined destination " + destinationIP.toString()
-            + " is remote, using default gateway " + nextHopIP.toString()
-        );
-    } else {
-        SimulationLogger::info(name + " determined destination " + destinationIP.toString() + " is on the local subnet.");
     }
 
-    if (!resolveArp(nextHopIP)) {
-        SimulationLogger::error(name + " could not resolve ARP for " + nextHopIP.toString());
+    if (sendIPPacket(packet)) {
+        nextTransportSequenceNumber++;
+    }
+}
+
+void EndDevice::processTransportSegment(const IPPacket& packet) {
+    TransportSegment segment = packet.getTransportSegment();
+    SimulationLogger::info(
+        name + " transport layer decapsulated segment: " + segment.toString()
+    );
+
+    if (segment.acknowledgement) {
+        cout << name << " received transport ACK for port "
+             << segment.destinationPort
+             << " from " << packet.getSourceIP().toString() << endl;
         return;
     }
 
-    Address nextHopMac = arpTable[nextHopIP.toString()];
-    IPPacket packet(ipAddress, destinationIP, data, 16);
-    Frame frame = Frame::createIPFrame(macAddress, nextHopMac, packet, nextSequenceNumber);
+    if (applicationServices.find(segment.destinationPort) != applicationServices.end()) {
+        ApplicationService* service = applicationServices[segment.destinationPort];
+        SimulationLogger::info(
+            name + " delivering segment to application service "
+            + service->getServiceName()
+            + " on port " + to_string(segment.destinationPort)
+        );
 
-    if (transmitFrameInternal(frame, true, "IP packet")) {
-        nextSequenceNumber++;
+        ApplicationMessage response = service->handleRequest(segment.applicationMessage, name);
+        SimulationLogger::info(
+            name + " application layer produced response: " + response.toString()
+        );
+
+        sendApplicationData(
+            packet.getSourceIP(),
+            segment.destinationPort,
+            segment.sourcePort,
+            response,
+            segment.protocol
+        );
+        return;
     }
+
+    if (clientProcesses.find(segment.destinationPort) != clientProcesses.end()) {
+        cout << name << " delivered application response to process "
+             << clientProcesses[segment.destinationPort]
+             << " on port " << segment.destinationPort
+             << ": " << segment.applicationMessage.toString()
+             << " (from " << packet.getSourceIP().toString() << ")" << endl;
+        return;
+    }
+
+    SimulationLogger::warn(
+        name + " has no process bound to destination port "
+        + to_string(segment.destinationPort)
+    );
 }
 
 void EndDevice::sendFrame(Frame frame, Device* sender) {
@@ -220,6 +356,11 @@ void EndDevice::receiveFrame(Frame frame, Device* sender) {
         IPPacket packet = frame.getIPPacket();
         if (!isForThisHost(packet.getDestinationIP())) {
             SimulationLogger::info(name + " ignored IP packet addressed to " + packet.getDestinationIP().toString());
+            return;
+        }
+
+        if (packet.containsTransportSegment()) {
+            processTransportSegment(packet);
             return;
         }
 
